@@ -3,12 +3,13 @@ package storage
 import (
 	"api/internal/models"
 	"context"
+	"fmt"
 	mssql "github.com/microsoft/go-mssqldb"
 	"github.com/pkg/errors"
 )
 
 func (s *Service) Employees(ctx context.Context) ([]models.Employee, error) {
-	sql := `SELECT e.Id_Employee, e.First_name, e.Last_name, e.Passport_number, e.Date_of_birth from employee e`
+	sql := `SELECT e.Id_Employee, e.First_name, e.Last_name, e.Pesel, e.Passport_number, e.Date_of_birth from employee e`
 
 	rows, err := s.DB.QueryContext(ctx, sql)
 	if err != nil {
@@ -25,6 +26,7 @@ func (s *Service) Employees(ctx context.Context) ([]models.Employee, error) {
 			&employee.ID,
 			&employee.LastName,
 			&employee.FirstName,
+			&employee.Pesel,
 			&employee.PassportNumber,
 			&employee.DateOfBirth,
 		)
@@ -109,7 +111,7 @@ func (s *Service) AddEmployee(ctx context.Context, newEmployee models.NewEmploye
 
 	sql = "INSERT INTO Residence_Card (Employee_Id, Bio, Visa, TCard) VALUES (@p1, @p2, @p3, @p4);"
 
-	_, err = s.DB.ExecContext(ctx, sql, id, mssql.DateTime1(newEmployee.ResidenceCard.Bio), mssql.DateTime1(newEmployee.ResidenceCard.Visa), mssql.DateTime1(newEmployee.ResidenceCard.TCard))
+	_, err = s.DB.ExecContext(ctx, sql, id, newEmployee.ResidenceCard.Bio.ConvertToTime(), newEmployee.ResidenceCard.Visa.ConvertToTime(), newEmployee.ResidenceCard.TCard.ConvertToTime())
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to add residence card")
 	}
@@ -119,8 +121,8 @@ func (s *Service) AddEmployee(ctx context.Context, newEmployee models.NewEmploye
 		Id_Employee, OSH_Valid_Until, Psychotests_Valid_Until, Medical_Valid_Until, Sanitary_Valid_Until
 	) VALUES (@p1, @p2, @p3, @p4, @p5);`
 	_, err = s.DB.ExecContext(ctx, sql, id,
-		mssql.DateTime1(newEmployee.Medicals.OSHValidUntil), mssql.DateTime1(newEmployee.Medicals.PsychotestsValidUntil),
-		mssql.DateTime1(newEmployee.Medicals.MedicalValidUntil), mssql.DateTime1(newEmployee.Medicals.SanitaryValidUntil))
+		mssql.DateTime1(newEmployee.Medicals.OSHValidUntil), newEmployee.Medicals.PsychotestsValidUntil.ConvertToTime(),
+		mssql.DateTime1(newEmployee.Medicals.MedicalValidUntil), newEmployee.Medicals.SanitaryValidUntil.ConvertToTime())
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to add medical details")
 	}
@@ -130,7 +132,7 @@ func (s *Service) AddEmployee(ctx context.Context, newEmployee models.NewEmploye
 		Id_Employee, Contract_Type, Start_Date, End_Date, Authorizations
 	) VALUES (@p1, @p2, @p3, @p4, @p5);`
 	_, err = s.DB.ExecContext(ctx, sql, id, newEmployee.Employment.ContractType,
-		mssql.DateTime1(newEmployee.Employment.StartDate), mssql.DateTime1(newEmployee.Employment.EndDate), newEmployee.Employment.Authorizations)
+		mssql.DateTime1(newEmployee.Employment.StartDate), newEmployee.Employment.EndDate.ConvertToTime(), newEmployee.Employment.Authorizations)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to add employment details")
 	}
@@ -158,6 +160,8 @@ func (s *Service) AddEmployee(ctx context.Context, newEmployee models.NewEmploye
 
 func (s *Service) UpdateEmployee(ctx context.Context, id int, updateEmployee models.UpdateEmployee) error {
 
+	fmt.Println("asdasdsaasdasdasdasdasd ", mssql.DateTime1(updateEmployee.DateOfBirth))
+
 	sql := `
 	UPDATE Employee 
 	SET Last_Name = @p1, First_Name = @p2, Passport_Number = @p3, Pesel = @p4, 
@@ -166,11 +170,20 @@ func (s *Service) UpdateEmployee(ctx context.Context, id int, updateEmployee mod
 		Address_Poland = @p12, Home_Address = @p13
 	WHERE Id_Employee = @p14;`
 	_, err := s.DB.ExecContext(ctx, sql,
-		updateEmployee.LastName, updateEmployee.FirstName, updateEmployee.PassportNumber,
-		updateEmployee.Pesel, updateEmployee.Email, mssql.DateTime1(updateEmployee.DateOfBirth),
-		updateEmployee.FatherName, updateEmployee.MotherName, updateEmployee.MaidenName,
-		updateEmployee.MotherMaidenName, updateEmployee.BankAccount, updateEmployee.AddressPoland,
-		updateEmployee.HomeAddress, id)
+		updateEmployee.LastName,
+		updateEmployee.FirstName,
+		updateEmployee.PassportNumber,
+		updateEmployee.Pesel,
+		updateEmployee.Email,
+		mssql.DateTime1(updateEmployee.DateOfBirth),
+		updateEmployee.FatherName,
+		updateEmployee.MotherName,
+		updateEmployee.MaidenName,
+		updateEmployee.MotherMaidenName,
+		updateEmployee.BankAccount,
+		updateEmployee.AddressPoland,
+		updateEmployee.HomeAddress,
+		id)
 	if err != nil {
 		return errors.Wrap(err, "failed to update employee details")
 	}
@@ -180,8 +193,8 @@ func (s *Service) UpdateEmployee(ctx context.Context, id int, updateEmployee mod
 	SET Bio = @p1, Visa = @p2, TCard = @p3 
 	WHERE Employee_Id = @p4;`
 	_, err = s.DB.ExecContext(ctx, sql,
-		mssql.DateTime1(updateEmployee.ResidenceCard.Bio), mssql.DateTime1(updateEmployee.ResidenceCard.Visa),
-		mssql.DateTime1(updateEmployee.ResidenceCard.TCard), id)
+		updateEmployee.ResidenceCard.Bio.ConvertToTime(), updateEmployee.ResidenceCard.Visa.ConvertToTime(),
+		updateEmployee.ResidenceCard.TCard.ConvertToTime(), id)
 	if err != nil {
 		return errors.Wrap(err, "failed to update residence card")
 	}
@@ -192,8 +205,8 @@ func (s *Service) UpdateEmployee(ctx context.Context, id int, updateEmployee mod
 		Medical_Valid_Until = @p3, Sanitary_Valid_Until = @p4 
 	WHERE Id_Employee = @p5;`
 	_, err = s.DB.ExecContext(ctx, sql,
-		mssql.DateTime1(updateEmployee.Medicals.OSHValidUntil), mssql.DateTime1(updateEmployee.Medicals.PsychotestsValidUntil),
-		mssql.DateTime1(updateEmployee.Medicals.MedicalValidUntil), mssql.DateTime1(updateEmployee.Medicals.SanitaryValidUntil), id)
+		mssql.DateTime1(updateEmployee.Medicals.OSHValidUntil), updateEmployee.Medicals.PsychotestsValidUntil.ConvertToTime(),
+		mssql.DateTime1(updateEmployee.Medicals.MedicalValidUntil), updateEmployee.Medicals.SanitaryValidUntil.ConvertToTime(), id)
 	if err != nil {
 		return errors.Wrap(err, "failed to update medical details")
 	}
@@ -201,9 +214,9 @@ func (s *Service) UpdateEmployee(ctx context.Context, id int, updateEmployee mod
 	sql = `
 		UPDATE Employment 
 		SET Contract_Type = @p1, Start_Date = @p2, End_Date = @p3, Authorizations = @p4 
-		WHERE Id_Employee = @p6;`
+		WHERE Id_Employee = @p5;`
 	_, err = s.DB.ExecContext(ctx, sql,
-		updateEmployee.Employment.ContractType, mssql.DateTime1(updateEmployee.Employment.StartDate), mssql.DateTime1(updateEmployee.Employment.EndDate),
+		updateEmployee.Employment.ContractType, mssql.DateTime1(updateEmployee.Employment.StartDate), updateEmployee.Employment.EndDate.ConvertToTime(),
 		updateEmployee.Employment.Authorizations, id)
 	if err != nil {
 		return errors.Wrap(err, "failed to update employment details")

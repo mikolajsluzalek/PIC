@@ -29,6 +29,52 @@ func (d Date) MarshalJSON() ([]byte, error) {
 	return []byte(stamp), nil
 }
 
+func (d Date) ConvertToTime() time.Time {
+	return time.Time(d)
+}
+
+type NullableDate struct {
+	isSet bool
+	date  *time.Time
+}
+
+func (d *NullableDate) UnmarshalJSON(b []byte) error {
+	str := string(b)
+
+	if str == "" || str == "null" {
+		d.isSet = false
+		return nil
+	}
+
+	if str[0] == '"' && str[len(str)-1] == '"' {
+		str = str[1 : len(str)-1]
+	}
+
+	t, err := time.Parse(time.DateOnly, str)
+	if err == nil {
+		d.isSet = true
+		d.date = &t
+		return nil
+	}
+	return fmt.Errorf("invalid duration type %T, value: '%s'", b, b)
+}
+
+func (d NullableDate) MarshalJSON() ([]byte, error) {
+	if d.isSet && d.date != nil {
+		stamp := fmt.Sprintf("\"%s\"", d.date.Format(time.DateOnly))
+		return []byte(stamp), nil
+	}
+
+	return []byte{}, nil
+}
+
+func (d NullableDate) ConvertToTime() *time.Time {
+	if d.isSet && d.date != nil {
+		return d.date
+	}
+	return nil
+}
+
 type JWTCustomClaims struct {
 	Username string `json:"username"`
 	jwt.RegisteredClaims
@@ -280,65 +326,65 @@ type MedicalDetails struct {
 }
 
 type NewEmployee struct {
-	LastName         string                  `json:"last_name"`
-	FirstName        string                  `json:"first_name"`
-	PassportNumber   string                  `json:"passport_number"`
+	LastName         string                  `json:"lastName"`
+	FirstName        string                  `json:"firstName"`
+	PassportNumber   string                  `json:"passportNumber"`
 	Pesel            string                  `json:"pesel"`
 	Email            string                  `json:"email"`
-	DateOfBirth      Date                    `json:"date_of_birth"`
-	FatherName       string                  `json:"father_name"`
-	MotherName       string                  `json:"mother_name"`
+	DateOfBirth      Date                    `json:"dateOfBirth"`
+	FatherName       string                  `json:"fatherName"`
+	MotherName       string                  `json:"motherName"`
 	MaidenName       string                  `json:"maiden_name"`
 	MotherMaidenName string                  `json:"mother_maiden_name"`
-	BankAccount      string                  `json:"bank_account"`
-	AddressPoland    string                  `json:"address_poland"`
-	HomeAddress      string                  `json:"home_address"`
+	BankAccount      string                  `json:"bankAccount"`
+	AddressPoland    string                  `json:"addressPoland"`
+	HomeAddress      string                  `json:"homeAddress"`
 	ResidenceCard    NewResidenceCardDetails `json:"residence_card"`
 	Employment       NewEmploymentDetails    `json:"employment"`
 	Medicals         NewMedicalDetails       `json:"medicals"`
-	ProjectId        int                     `json:"project_id"`
-	AccommodationId  int                     `json:"accommodation_id"`
-	CarId            int                     `json:"car_id"`
+	ProjectId        int                     `json:"projectId"`
+	AccommodationId  int                     `json:"accommodationId"`
+	CarId            int                     `json:"carId"`
 }
 
 type UpdateEmployee struct {
-	LastName         string                  `json:"last_name"`
-	FirstName        string                  `json:"first_name"`
-	PassportNumber   string                  `json:"passport_number"`
+	LastName         string                  `json:"lastName"`
+	FirstName        string                  `json:"firstName"`
+	PassportNumber   string                  `json:"passportNumber"`
 	Pesel            string                  `json:"pesel"`
 	Email            string                  `json:"email"`
-	DateOfBirth      Date                    `json:"date_of_birth"`
-	FatherName       string                  `json:"father_name"`
-	MotherName       string                  `json:"mother_name"`
+	DateOfBirth      Date                    `json:"dateOfBirth"`
+	FatherName       string                  `json:"fatherName"`
+	MotherName       string                  `json:"motherName"`
 	MaidenName       string                  `json:"maiden_name"`
 	MotherMaidenName string                  `json:"mother_maiden_name"`
-	BankAccount      string                  `json:"bank_account"`
-	AddressPoland    string                  `json:"address_poland"`
-	HomeAddress      string                  `json:"home_address"`
+	BankAccount      string                  `json:"bankAccount"`
+	AddressPoland    string                  `json:"addressPoland"`
+	HomeAddress      string                  `json:"homeAddress"`
 	ResidenceCard    NewResidenceCardDetails `json:"residence_card"`
 	Employment       NewEmploymentDetails    `json:"employment"`
 	Medicals         NewMedicalDetails       `json:"medicals"`
-	ProjectId        int                     `json:"project_id"`
-	AccommodationId  int                     `json:"accommodation_id"`
-	CarId            int                     `json:"car_id"`
+	ProjectId        int                     `json:"projectId"`
+	AccommodationId  int                     `json:"accommodationId"`
+	CarId            int                     `json:"carId"`
 }
 
 type NewResidenceCardDetails struct {
-	Bio   *Date `json:"bio,omitempty"`
-	Visa  *Date `json:"visa,omitempty"`
-	TCard *Date `json:"tcard,omitempty"`
+	Bio   NullableDate `json:"bio,omitempty"`
+	Visa  NullableDate `json:"visa,omitempty"`
+	TCard NullableDate `json:"tcard,omitempty"`
 }
 
 type NewEmploymentDetails struct {
-	ContractType   string `json:"contract_type"`
-	StartDate      Date   `json:"start_date"`
-	EndDate        Date   `json:"end_date,omitempty"`
-	Authorizations string `json:"authorizations,omitempty"`
+	ContractType   string       `json:"contractType"`
+	StartDate      Date         `json:"startDate"`
+	EndDate        NullableDate `json:"endDate,omitempty"`
+	Authorizations string       `json:"authorizations,omitempty"`
 }
 
 type NewMedicalDetails struct {
-	OSHValidUntil         Date  `json:"osh_valid_until,omitempty"`
-	PsychotestsValidUntil *Date `json:"psychotests_valid_until,omitempty"`
-	MedicalValidUntil     Date  `json:"medical_valid_until,omitempty"`
-	SanitaryValidUntil    *Date `json:"sanitary_valid_until,omitempty"`
+	OSHValidUntil         Date         `json:"oshValidUntil,omitempty"`
+	PsychotestsValidUntil NullableDate `json:"psychotestsValidUntil,omitempty"`
+	MedicalValidUntil     Date         `json:"medicalValidUntil,omitempty"`
+	SanitaryValidUntil    NullableDate `json:"sanitaryValidUntil,omitempty"`
 }
