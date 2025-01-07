@@ -3,89 +3,12 @@ package storage
 import (
 	"api/internal/models"
 	"context"
+	mssql "github.com/microsoft/go-mssqldb"
 	"github.com/pkg/errors"
 )
 
 func (s *Service) Employees(ctx context.Context) ([]models.Employee, error) {
-	sql := `
-	SELECT 
-    e.Id_Employee, 
-    e.Last_Name, 
-    e.First_Name, 
-    e.Passport_Number, 
-    e.Pesel, 
-    e.Email, 
-    e.Date_Of_Birth, 
-    e.Father_Name, 
-    e.Mother_Name, 
-    e.Maiden_Name, 
-    e.Mother_Maiden_Name, 
-    e.Bank_Account, 
-    e.Address_Poland, 
-    e.Home_Address, 
-    e.Login, 
-    e.Password, 
-    MAX(rc.Id_Card) AS Id_Card, 
-    MAX(rc.Bio) AS Bio, 
-    MAX(rc.Visa) AS Visa, 
-    MAX(rc.Tcard) AS TCard, 
-    em.Id_Employment, 
-    em.Contract_Type, 
-    em.Start_Date AS Start_Date, 
-    em.End_Date AS End_Date, 
-    em.Authorizations, 
-    MAX(m.Id_Medicals) AS Id_Medicals, 
-    MAX(m.OSH_Valid_Until) AS OSH_Valid_Until, 
-    MAX(m.Psychotests_Valid_Until) AS Psychotests_Valid_Until, 
-    MAX(m.Medical_Valid_Until) AS Medical_Valid_Until, 
-    MAX(m.Sanitary_Valid_Until) AS Sanitary_Valid_Until, 
-    MAX(p.Id_Project) AS Id_Project, 
-    MAX(p.Name) AS Project_Name, 
-    MAX(a.Id_Accommodation) AS Id_Accommodation, 
-    MAX(a.Accommodation_Address) AS Accommodation_Address, 
-    MAX(c.Id_Car) AS Id_Car, 
-    MAX(c.Registration_Number) AS Registration_Number
-FROM Employee e
-LEFT JOIN Residence_Card rc ON e.Id_Employee = rc.Employee_Id 
-LEFT JOIN (
-    SELECT em1.*
-    FROM Employment em1
-    INNER JOIN (
-        SELECT Id_Employee, MAX(Id_Employment) AS MaxEmploymentId
-        FROM Employment
-        GROUP BY Id_Employee
-    ) em2 ON em1.Id_Employee = em2.Id_Employee AND em1.Id_Employment = em2.MaxEmploymentId
-) em ON e.Id_Employee = em.Id_Employee
-LEFT JOIN Medicals m ON e.Id_Employee = m.Id_Employee 
-LEFT JOIN Employee_Project ep ON e.Id_Employee = ep.Id_Employee 
-LEFT JOIN Project p ON ep.Id_Project = p.Id_Project 
-LEFT JOIN Employee_Accommodation ea ON e.Id_Employee = ea.Id_Employee 
-LEFT JOIN Accommodation a ON ea.Id_Accommodation = a.Id_Accommodation 
-LEFT JOIN Employee_Car ec ON e.Id_Employee = ec.Id_Employee 
-LEFT JOIN Car c ON ec.Id_Car = c.Id_Car 
-GROUP BY 
-    e.Id_Employee, 
-    e.Last_Name, 
-    e.First_Name, 
-    e.Passport_Number, 
-    e.Pesel, 
-    e.Email, 
-    e.Date_Of_Birth, 
-    e.Father_Name, 
-    e.Mother_Name, 
-    e.Maiden_Name, 
-    e.Mother_Maiden_Name, 
-    e.Bank_Account, 
-    e.Address_Poland, 
-    e.Home_Address, 
-    e.Login, 
-    e.Password, 
-    em.Id_Employment, 
-    em.Contract_Type, 
-    em.Start_Date, 
-    em.End_Date, 
-    em.Authorizations;
-`
+	sql := `SELECT e.Id_Employee, e.First_name, e.Last_name, e.Passport_number, e.Date_of_birth from employee e`
 
 	rows, err := s.DB.QueryContext(ctx, sql)
 	if err != nil {
@@ -103,38 +26,7 @@ GROUP BY
 			&employee.LastName,
 			&employee.FirstName,
 			&employee.PassportNumber,
-			&employee.Pesel,
-			&employee.Email,
 			&employee.DateOfBirth,
-			&employee.FatherName,
-			&employee.MotherName,
-			&employee.MaidenName,
-			&employee.MotherMaidenName,
-			&employee.BankAccount,
-			&employee.AddressPoland,
-			&employee.HomeAddress,
-			&employee.Login,
-			&employee.Password,
-			&employee.ResidenceCard.ID,
-			&employee.ResidenceCard.Bio,
-			&employee.ResidenceCard.Visa,
-			&employee.ResidenceCard.TCard,
-			&employee.Employment.ID,
-			&employee.Employment.ContractType,
-			&employee.Employment.StartDate,
-			&employee.Employment.EndDate,
-			&employee.Employment.Authorizations,
-			&employee.Medicals.ID,
-			&employee.Medicals.OSHValidUntil,
-			&employee.Medicals.PsychotestsValidUntil,
-			&employee.Medicals.MedicalValidUntil,
-			&employee.Medicals.SanitaryValidUntil,
-			&employee.ProjectId,
-			&employee.ProjectName,
-			&employee.AccommodationId,
-			&employee.AccommodationAddress,
-			&employee.CarId,
-			&employee.CarRegistrationNumber,
 		)
 
 		if err != nil {
@@ -153,8 +45,7 @@ GROUP BY
 }
 
 func (s *Service) GetEmployee(ctx context.Context, id int) (models.Employee, error) {
-	sql := "SELECT e.Id_Employee, e.Last_Name, e.First_Name, e.Passport_Number, e.Pesel, e.Email, e.Date_Of_Birth, e.Father_Name, e.Mother_Name, e.Maiden_Name, e.Mother_Maiden_Name, e.Bank_Account, e.Address_Poland, e.Home_Address, e.Login, e.Password, MAX(rc.Id_Card), MAX(rc.Bio), MAX(rc.Visa), MAX(rc.Tcard), em.Id_Employment, em.Contract_Type, em.Start_Date, em.End_Date, em.Authorizations, MAX(m.Id_Medicals), MAX(m.OSH_Valid_Until), MAX(m.Psychotests_Valid_Until), MAX(m.Medical_Valid_Until), MAX(m.Sanitary_Valid_Until), MAX(p.Id_Project), MAX(p.Name), MAX(a.Id_Accommodation), MAX(a.Accommodation_Address), MAX(c.Id_Car), MAX(c.Registration_Number) FROM Employee e LEFT JOIN Residence_Card rc ON e.Id_Employee = rc.Employee_Id LEFT JOIN Employment em ON e.Id_Employee = em.Id_Employee LEFT JOIN Medicals m ON e.Id_Employee = m.Id_Employee LEFT JOIN Employee_Project ep ON e.Id_Employee = ep.Id_Employee LEFT JOIN Project p ON ep.Id_Project = p.Id_Project LEFT JOIN Employee_Accommodation ea ON e.Id_Employee = ea.Id_Employee LEFT JOIN Accommodation a ON ea.Id_Accommodation = a.Id_Accommodation LEFT JOIN Employee_Car ec ON e.Id_Employee = ec.Id_Employee LEFT JOIN Car c ON ec.Id_Car = c.Id_Car GROUP BY e.Id_Employee, e.Last_Name, e.First_Name, e.Passport_Number, e.Pesel, e.Email, e.Date_Of_Birth, e.Father_Name, e.Mother_Name, e.Maiden_Name, e.Mother_Maiden_Name, e.Bank_Account, e.Address_Poland, e.Home_Address, e.Login, e.Password, em.Id_Employment, em.Contract_Type, em.Start_Date, em.End_Date, em.Authorizations HAVING e.Id_Employee = @p1;"
-
+	sql := `SELECT TOP 1 e.Id_Employee, e.Last_Name, e.First_Name, e.Passport_Number, e.Pesel, e.Email, e.Date_Of_Birth, e.Father_Name, e.Mother_Name, e.Maiden_Name, e.Mother_Maiden_Name, e.Bank_Account, e.Address_Poland, e.Home_Address, e.Login, e.Password, m.Id_medicals, m.OSH_Valid_Until, m.Psychotests_Valid_Until, m.Medical_Valid_Until, m.Sanitary_Valid_Until, em.Id_Employment, em.Contract_Type, em.Start_Date, em.End_Date, em.Authorizations, rc.Id_card, rc.Bio, rc.Visa, rc.Tcard, ea.Id_Accommodation, ep.Id_Project, ec.Id_Car FROM employee e LEFT JOIN (SELECT TOP 1 Id_medicals, OSH_Valid_Until, Psychotests_Valid_Until, Medical_Valid_Until, Sanitary_Valid_Until, Id_employee FROM Medicals WHERE Id_employee = @p1 ORDER BY Id_medicals DESC) m ON e.Id_Employee = m.Id_employee LEFT JOIN (SELECT TOP 1 Id_Employment, Contract_Type, Start_Date, End_Date, Authorizations, Id_Employee FROM Employment WHERE Id_Employee = @p1 ORDER BY Id_Employment DESC) em ON e.Id_Employee = em.Id_Employee LEFT JOIN (SELECT TOP 1 Id_card, Bio, Visa, Tcard, Employee_Id FROM Residence_Card WHERE Employee_Id = @p1 ORDER BY Id_Card DESC) rc ON e.Id_Employee = rc.Employee_Id LEFT JOIN (SELECT Id_Accommodation, Id_Employee FROM Employee_Accommodation WHERE Id_Employee = @p1) ea ON e.Id_Employee = ea.Id_Employee LEFT JOIN (SELECT Id_Project, Id_Employee FROM Employee_Project WHERE Id_Employee = @p1) ep ON e.Id_Employee = ep.Id_Employee LEFT JOIN (SELECT Id_Car, Id_Employee FROM Employee_Car WHERE Id_Employee = @p1) ec ON e.Id_Employee = ec.Id_Employee WHERE e.Id_Employee = @p1;`
 	var employee models.Employee
 
 	err := s.DB.QueryRowContext(ctx, sql, id).Scan(
@@ -174,26 +65,23 @@ func (s *Service) GetEmployee(ctx context.Context, id int) (models.Employee, err
 		&employee.HomeAddress,
 		&employee.Login,
 		&employee.Password,
-		&employee.ResidenceCard.ID,
-		&employee.ResidenceCard.Bio,
-		&employee.ResidenceCard.Visa,
-		&employee.ResidenceCard.TCard,
-		&employee.Employment.ID,
-		&employee.Employment.ContractType,
-		&employee.Employment.StartDate,
-		&employee.Employment.EndDate,
-		&employee.Employment.Authorizations,
 		&employee.Medicals.ID,
 		&employee.Medicals.OSHValidUntil,
 		&employee.Medicals.PsychotestsValidUntil,
 		&employee.Medicals.MedicalValidUntil,
 		&employee.Medicals.SanitaryValidUntil,
-		&employee.ProjectId,
-		&employee.ProjectName,
+		&employee.Employment.ID,
+		&employee.Employment.ContractType,
+		&employee.Employment.StartDate,
+		&employee.Employment.EndDate,
+		&employee.Employment.Authorizations,
+		&employee.ResidenceCard.ID,
+		&employee.ResidenceCard.Bio,
+		&employee.ResidenceCard.Visa,
+		&employee.ResidenceCard.TCard,
 		&employee.AccommodationId,
-		&employee.AccommodationAddress,
+		&employee.ProjectId,
 		&employee.CarId,
-		&employee.CarRegistrationNumber,
 	)
 
 	return employee, errors.Wrap(err, "failed to retrieve employee")
@@ -210,7 +98,7 @@ func (s *Service) AddEmployee(ctx context.Context, newEmployee models.NewEmploye
 	SELECT SCOPE_IDENTITY() AS Id_Employee;`
 	err = s.DB.QueryRowContext(ctx, sql,
 		newEmployee.LastName, newEmployee.FirstName, newEmployee.PassportNumber,
-		newEmployee.Pesel, newEmployee.Email, newEmployee.DateOfBirth,
+		newEmployee.Pesel, newEmployee.Email, mssql.DateTime1(newEmployee.DateOfBirth),
 		newEmployee.FatherName, newEmployee.MotherName, newEmployee.MaidenName,
 		newEmployee.MotherMaidenName, newEmployee.BankAccount, newEmployee.AddressPoland,
 		newEmployee.HomeAddress,
@@ -220,7 +108,8 @@ func (s *Service) AddEmployee(ctx context.Context, newEmployee models.NewEmploye
 	}
 
 	sql = "INSERT INTO Residence_Card (Employee_Id, Bio, Visa, TCard) VALUES (@p1, @p2, @p3, @p4);"
-	_, err = s.DB.ExecContext(ctx, sql, id, newEmployee.ResidenceCard.Bio, newEmployee.ResidenceCard.Visa, newEmployee.ResidenceCard.TCard)
+
+	_, err = s.DB.ExecContext(ctx, sql, id, mssql.DateTime1(newEmployee.ResidenceCard.Bio), mssql.DateTime1(newEmployee.ResidenceCard.Visa), mssql.DateTime1(newEmployee.ResidenceCard.TCard))
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to add residence card")
 	}
@@ -230,8 +119,8 @@ func (s *Service) AddEmployee(ctx context.Context, newEmployee models.NewEmploye
 		Id_Employee, OSH_Valid_Until, Psychotests_Valid_Until, Medical_Valid_Until, Sanitary_Valid_Until
 	) VALUES (@p1, @p2, @p3, @p4, @p5);`
 	_, err = s.DB.ExecContext(ctx, sql, id,
-		newEmployee.Medicals.OSHValidUntil, newEmployee.Medicals.PsychotestsValidUntil,
-		newEmployee.Medicals.MedicalValidUntil, newEmployee.Medicals.SanitaryValidUntil)
+		mssql.DateTime1(newEmployee.Medicals.OSHValidUntil), mssql.DateTime1(newEmployee.Medicals.PsychotestsValidUntil),
+		mssql.DateTime1(newEmployee.Medicals.MedicalValidUntil), mssql.DateTime1(newEmployee.Medicals.SanitaryValidUntil))
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to add medical details")
 	}
@@ -241,7 +130,7 @@ func (s *Service) AddEmployee(ctx context.Context, newEmployee models.NewEmploye
 		Id_Employee, Contract_Type, Start_Date, End_Date, Authorizations
 	) VALUES (@p1, @p2, @p3, @p4, @p5);`
 	_, err = s.DB.ExecContext(ctx, sql, id, newEmployee.Employment.ContractType,
-		newEmployee.Employment.StartDate, newEmployee.Employment.EndDate, newEmployee.Employment.Authorizations)
+		mssql.DateTime1(newEmployee.Employment.StartDate), mssql.DateTime1(newEmployee.Employment.EndDate), newEmployee.Employment.Authorizations)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to add employment details")
 	}
@@ -278,7 +167,7 @@ func (s *Service) UpdateEmployee(ctx context.Context, id int, updateEmployee mod
 	WHERE Id_Employee = @p14;`
 	_, err := s.DB.ExecContext(ctx, sql,
 		updateEmployee.LastName, updateEmployee.FirstName, updateEmployee.PassportNumber,
-		updateEmployee.Pesel, updateEmployee.Email, updateEmployee.DateOfBirth,
+		updateEmployee.Pesel, updateEmployee.Email, mssql.DateTime1(updateEmployee.DateOfBirth),
 		updateEmployee.FatherName, updateEmployee.MotherName, updateEmployee.MaidenName,
 		updateEmployee.MotherMaidenName, updateEmployee.BankAccount, updateEmployee.AddressPoland,
 		updateEmployee.HomeAddress, id)
@@ -291,8 +180,8 @@ func (s *Service) UpdateEmployee(ctx context.Context, id int, updateEmployee mod
 	SET Bio = @p1, Visa = @p2, TCard = @p3 
 	WHERE Employee_Id = @p4;`
 	_, err = s.DB.ExecContext(ctx, sql,
-		updateEmployee.ResidenceCard.Bio, updateEmployee.ResidenceCard.Visa,
-		updateEmployee.ResidenceCard.TCard, id)
+		mssql.DateTime1(updateEmployee.ResidenceCard.Bio), mssql.DateTime1(updateEmployee.ResidenceCard.Visa),
+		mssql.DateTime1(updateEmployee.ResidenceCard.TCard), id)
 	if err != nil {
 		return errors.Wrap(err, "failed to update residence card")
 	}
@@ -303,8 +192,8 @@ func (s *Service) UpdateEmployee(ctx context.Context, id int, updateEmployee mod
 		Medical_Valid_Until = @p3, Sanitary_Valid_Until = @p4 
 	WHERE Id_Employee = @p5;`
 	_, err = s.DB.ExecContext(ctx, sql,
-		updateEmployee.Medicals.OSHValidUntil, updateEmployee.Medicals.PsychotestsValidUntil,
-		updateEmployee.Medicals.MedicalValidUntil, updateEmployee.Medicals.SanitaryValidUntil, id)
+		mssql.DateTime1(updateEmployee.Medicals.OSHValidUntil), mssql.DateTime1(updateEmployee.Medicals.PsychotestsValidUntil),
+		mssql.DateTime1(updateEmployee.Medicals.MedicalValidUntil), mssql.DateTime1(updateEmployee.Medicals.SanitaryValidUntil), id)
 	if err != nil {
 		return errors.Wrap(err, "failed to update medical details")
 	}
@@ -314,7 +203,7 @@ func (s *Service) UpdateEmployee(ctx context.Context, id int, updateEmployee mod
 		SET Contract_Type = @p1, Start_Date = @p2, End_Date = @p3, Authorizations = @p4 
 		WHERE Id_Employee = @p6;`
 	_, err = s.DB.ExecContext(ctx, sql,
-		updateEmployee.Employment.ContractType, updateEmployee.Employment.StartDate, updateEmployee.Employment.EndDate,
+		updateEmployee.Employment.ContractType, mssql.DateTime1(updateEmployee.Employment.StartDate), mssql.DateTime1(updateEmployee.Employment.EndDate),
 		updateEmployee.Employment.Authorizations, id)
 	if err != nil {
 		return errors.Wrap(err, "failed to update employment details")

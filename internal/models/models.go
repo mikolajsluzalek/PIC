@@ -232,31 +232,28 @@ type UpdatePaymentDetails struct {
 }
 
 type Employee struct {
-	ID                    int                  `json:"id"`
-	LastName              string               `json:"last_name"`
-	FirstName             string               `json:"first_name"`
-	PassportNumber        string               `json:"passport_number"`
-	Pesel                 string               `json:"pesel"`
-	Email                 string               `json:"email"`
-	DateOfBirth           Date                 `json:"date_of_birth"`
-	FatherName            string               `json:"father_name"`
-	MotherName            string               `json:"mother_name"`
-	MaidenName            string               `json:"maiden_name"`
-	MotherMaidenName      string               `json:"mother_maiden_name"`
-	BankAccount           string               `json:"bank_account"`
-	AddressPoland         string               `json:"address_poland"`
-	HomeAddress           *string              `json:"home_address"`
-	Login                 *string              `json:"login,omitempty"`
-	Password              *string              `json:"password,omitempty"`
-	ResidenceCard         ResidenceCardDetails `json:"residence_card"`
-	Employment            EmploymentDetails    `json:"employment"`
-	Medicals              MedicalDetails       `json:"medicals"`
-	ProjectId             int                  `json:"project_id"`
-	ProjectName           string               `json:"project_name"`
-	AccommodationId       *int                 `json:"accommodation_id"`
-	AccommodationAddress  *string              `json:"accommodation_address"`
-	CarId                 *int                 `json:"car_id"`
-	CarRegistrationNumber *string              `json:"car_registration_number"`
+	ID               int                  `json:"id"`
+	LastName         string               `json:"last_name"`
+	FirstName        string               `json:"first_name"`
+	PassportNumber   string               `json:"passport_number"`
+	Pesel            string               `json:"pesel"`
+	Email            string               `json:"email"`
+	DateOfBirth      Date                 `json:"date_of_birth"`
+	FatherName       string               `json:"father_name"`
+	MotherName       string               `json:"mother_name"`
+	MaidenName       string               `json:"maiden_name"`
+	MotherMaidenName string               `json:"mother_maiden_name"`
+	BankAccount      string               `json:"bank_account"`
+	AddressPoland    string               `json:"address_poland"`
+	HomeAddress      *string              `json:"home_address"`
+	Login            *string              `json:"login,omitempty"`
+	Password         *string              `json:"password,omitempty"`
+	ResidenceCard    ResidenceCardDetails `json:"residence_card"`
+	Employment       EmploymentDetails    `json:"employment"`
+	Medicals         MedicalDetails       `json:"medicals"`
+	ProjectId        int                  `json:"project_id"`
+	AccommodationId  *int                 `json:"accommodation_id"`
+	CarId            *int                 `json:"car_id"`
 }
 
 type ResidenceCardDetails struct {
@@ -270,7 +267,7 @@ type EmploymentDetails struct {
 	ID             int    `json:"id"`
 	ContractType   string `json:"contract_type"`
 	StartDate      Date   `json:"start_date"`
-	EndDate        Date   `json:"end_date,omitempty"`
+	EndDate        *Date  `json:"end_date,omitempty"`
 	Authorizations string `json:"authorizations,omitempty"`
 }
 
