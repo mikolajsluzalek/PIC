@@ -334,12 +334,12 @@ type NewEmployee struct {
 	DateOfBirth      Date                    `json:"dateOfBirth"`
 	FatherName       string                  `json:"fatherName"`
 	MotherName       string                  `json:"motherName"`
-	MaidenName       string                  `json:"maiden_name"`
-	MotherMaidenName string                  `json:"mother_maiden_name"`
+	MaidenName       string                  `json:"maidenName"`
+	MotherMaidenName string                  `json:"motherMaidenName"`
 	BankAccount      string                  `json:"bankAccount"`
 	AddressPoland    string                  `json:"addressPoland"`
 	HomeAddress      string                  `json:"homeAddress"`
-	ResidenceCard    NewResidenceCardDetails `json:"residence_card"`
+	ResidenceCard    NewResidenceCardDetails `json:"residenceCard"`
 	Employment       NewEmploymentDetails    `json:"employment"`
 	Medicals         NewMedicalDetails       `json:"medicals"`
 	ProjectId        int                     `json:"projectId"`
@@ -356,12 +356,12 @@ type UpdateEmployee struct {
 	DateOfBirth      Date                    `json:"dateOfBirth"`
 	FatherName       string                  `json:"fatherName"`
 	MotherName       string                  `json:"motherName"`
-	MaidenName       string                  `json:"maiden_name"`
-	MotherMaidenName string                  `json:"mother_maiden_name"`
+	MaidenName       string                  `json:"maidenName"`
+	MotherMaidenName string                  `json:"motherMaidenName"`
 	BankAccount      string                  `json:"bankAccount"`
 	AddressPoland    string                  `json:"addressPoland"`
 	HomeAddress      string                  `json:"homeAddress"`
-	ResidenceCard    NewResidenceCardDetails `json:"residence_card"`
+	ResidenceCard    NewResidenceCardDetails `json:"residenceCard"`
 	Employment       NewEmploymentDetails    `json:"employment"`
 	Medicals         NewMedicalDetails       `json:"medicals"`
 	ProjectId        int                     `json:"projectId"`

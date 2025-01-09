@@ -159,9 +159,6 @@ func (s *Service) AddEmployee(ctx context.Context, newEmployee models.NewEmploye
 }
 
 func (s *Service) UpdateEmployee(ctx context.Context, id int, updateEmployee models.UpdateEmployee) error {
-
-	fmt.Println("asdasdsaasdasdasdasdasd ", mssql.DateTime1(updateEmployee.DateOfBirth))
-
 	sql := `
 	UPDATE Employee 
 	SET Last_Name = @p1, First_Name = @p2, Passport_Number = @p3, Pesel = @p4, 
@@ -188,11 +185,13 @@ func (s *Service) UpdateEmployee(ctx context.Context, id int, updateEmployee mod
 		return errors.Wrap(err, "failed to update employee details")
 	}
 
+	fmt.Println("aaaa", updateEmployee.ResidenceCard.Bio)
+
 	sql = `
 	UPDATE Residence_Card 
 	SET Bio = @p1, Visa = @p2, TCard = @p3 
 	WHERE Employee_Id = @p4;`
-	_, err = s.DB.ExecContext(ctx, sql,
+	res, err := s.DB.ExecContext(ctx, sql,
 		updateEmployee.ResidenceCard.Bio.ConvertToTime(), updateEmployee.ResidenceCard.Visa.ConvertToTime(),
 		updateEmployee.ResidenceCard.TCard.ConvertToTime(), id)
 	if err != nil {
