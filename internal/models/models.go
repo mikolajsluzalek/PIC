@@ -42,7 +42,6 @@ func (d *NullableDate) UnmarshalJSON(b []byte) error {
 	str := string(b)
 
 	if str == "" || str == "null" {
-		d.isSet = false
 		return nil
 	}
 
@@ -56,6 +55,7 @@ func (d *NullableDate) UnmarshalJSON(b []byte) error {
 		d.date = &t
 		return nil
 	}
+
 	return fmt.Errorf("invalid duration type %T, value: '%s'", b, b)
 }
 

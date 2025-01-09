@@ -3,7 +3,6 @@ package storage
 import (
 	"api/internal/models"
 	"context"
-	"fmt"
 	mssql "github.com/microsoft/go-mssqldb"
 	"github.com/pkg/errors"
 )
@@ -185,13 +184,11 @@ func (s *Service) UpdateEmployee(ctx context.Context, id int, updateEmployee mod
 		return errors.Wrap(err, "failed to update employee details")
 	}
 
-	fmt.Println("aaaa", updateEmployee.ResidenceCard.Bio)
-
 	sql = `
 	UPDATE Residence_Card 
 	SET Bio = @p1, Visa = @p2, TCard = @p3 
 	WHERE Employee_Id = @p4;`
-	res, err := s.DB.ExecContext(ctx, sql,
+	_, err = s.DB.ExecContext(ctx, sql,
 		updateEmployee.ResidenceCard.Bio.ConvertToTime(), updateEmployee.ResidenceCard.Visa.ConvertToTime(),
 		updateEmployee.ResidenceCard.TCard.ConvertToTime(), id)
 	if err != nil {
