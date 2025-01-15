@@ -3,6 +3,7 @@ package storage
 import (
 	"api/internal/models"
 	"context"
+	"database/sql"
 	mssql "github.com/microsoft/go-mssqldb"
 	"github.com/pkg/errors"
 )
@@ -158,14 +159,14 @@ func (s *Service) AddEmployee(ctx context.Context, newEmployee models.NewEmploye
 }
 
 func (s *Service) UpdateEmployee(ctx context.Context, id int, updateEmployee models.UpdateEmployee) error {
-	sql := `
+	query := `
 	UPDATE Employee 
 	SET Last_Name = @p1, First_Name = @p2, Passport_Number = @p3, Pesel = @p4, 
 		Email = @p5, Date_Of_Birth = @p6, Father_Name = @p7, Mother_Name = @p8, 
 		Maiden_Name = @p9, Mother_Maiden_Name = @p10, Bank_Account = @p11, 
 		Address_Poland = @p12, Home_Address = @p13
 	WHERE Id_Employee = @p14;`
-	_, err := s.DB.ExecContext(ctx, sql,
+	_, err := s.DB.ExecContext(ctx, query,
 		updateEmployee.LastName,
 		updateEmployee.FirstName,
 		updateEmployee.PassportNumber,
@@ -184,65 +185,95 @@ func (s *Service) UpdateEmployee(ctx context.Context, id int, updateEmployee mod
 		return errors.Wrap(err, "failed to update employee details")
 	}
 
-	sql = `
+	query = `
 	UPDATE Residence_Card 
 	SET Bio = @p1, Visa = @p2, TCard = @p3 
 	WHERE Employee_Id = @p4;`
-	_, err = s.DB.ExecContext(ctx, sql,
+	_, err = s.DB.ExecContext(ctx, query,
 		updateEmployee.ResidenceCard.Bio.ConvertToTime(), updateEmployee.ResidenceCard.Visa.ConvertToTime(),
 		updateEmployee.ResidenceCard.TCard.ConvertToTime(), id)
 	if err != nil {
 		return errors.Wrap(err, "failed to update residence card")
 	}
 
-	sql = `
+	query = `
 	UPDATE Medicals 
 	SET OSH_Valid_Until = @p1, Psychotests_Valid_Until = @p2, 
 		Medical_Valid_Until = @p3, Sanitary_Valid_Until = @p4 
 	WHERE Id_Employee = @p5;`
-	_, err = s.DB.ExecContext(ctx, sql,
+	_, err = s.DB.ExecContext(ctx, query,
 		mssql.DateTime1(updateEmployee.Medicals.OSHValidUntil), updateEmployee.Medicals.PsychotestsValidUntil.ConvertToTime(),
 		mssql.DateTime1(updateEmployee.Medicals.MedicalValidUntil), updateEmployee.Medicals.SanitaryValidUntil.ConvertToTime(), id)
 	if err != nil {
 		return errors.Wrap(err, "failed to update medical details")
 	}
 
-	sql = `
+	query = `
 		UPDATE Employment 
 		SET Contract_Type = @p1, Start_Date = @p2, End_Date = @p3, Authorizations = @p4 
 		WHERE Id_Employee = @p5;`
-	_, err = s.DB.ExecContext(ctx, sql,
+	_, err = s.DB.ExecContext(ctx, query,
 		updateEmployee.Employment.ContractType, mssql.DateTime1(updateEmployee.Employment.StartDate), updateEmployee.Employment.EndDate.ConvertToTime(),
 		updateEmployee.Employment.Authorizations, id)
 	if err != nil {
 		return errors.Wrap(err, "failed to update employment details")
 	}
 
-	sql = `
+	query = `
 	UPDATE Employee_Project 
 	SET Id_Project = @p1 
 	WHERE Id_Employee = @p2;`
-	_, err = s.DB.ExecContext(ctx, sql, updateEmployee.ProjectId, id)
+	_, err = s.DB.ExecContext(ctx, query, updateEmployee.ProjectId, id)
 	if err != nil {
 		return errors.Wrap(err, "failed to update project details")
 	}
 
-	sql = `
-	UPDATE Employee_Accommodation 
-	SET Id_Accommodation = @p1 
-	WHERE Id_Employee = @p2;`
-	_, err = s.DB.ExecContext(ctx, sql, updateEmployee.AccommodationId, id)
-	if err != nil {
-		return errors.Wrap(err, "failed to update accommodation details")
+	var rowExists bool
+
+	query = `SELECT CASE WHEN EXISTS (SELECT 1 FROM Employee_Accommodation WHERE Id_Employee = @p1) THEN 1 ELSE 0 END AS RowExists;`
+	err = s.DB.QueryRowContext(ctx, query, id).Scan(
+		&rowExists,
+	)
+
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return errors.Wrap(err, "failed to get car details")
 	}
 
-	sql = `
-	UPDATE Employee_Car 
-	SET Id_Car = @p1 
-	WHERE Id_Employee = @p2;`
-	_, err = s.DB.ExecContext(ctx, sql, updateEmployee.CarId, id)
-	if err != nil {
-		return errors.Wrap(err, "failed to update car details")
+	if rowExists {
+		query = `UPDATE Employee_Accommodation SET Id_Accommodation = @p1 WHERE Id_Employee = @p2;`
+		_, err = s.DB.ExecContext(ctx, query, updateEmployee.AccommodationId, id)
+		if err != nil {
+			return errors.Wrap(err, "failed to update accommodation details")
+		}
+	} else {
+		query = "INSERT INTO Employee_Accommodation (Id_Employee, Id_Accommodation) VALUES (@p1, @p2);"
+		_, err = s.DB.ExecContext(ctx, query, id, updateEmployee.AccommodationId)
+		if err != nil {
+			return errors.Wrap(err, "failed to insert car details")
+		}
+	}
+
+	query = `SELECT CASE WHEN EXISTS (SELECT 1 FROM Employee_Car WHERE Id_Employee = @p1) THEN 1 ELSE 0 END AS RowExists;`
+	err = s.DB.QueryRowContext(ctx, query, id).Scan(
+		&rowExists,
+	)
+
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return errors.Wrap(err, "failed to get car details")
+	}
+
+	if rowExists {
+		query = `UPDATE Employee_Car SET Id_Car = @p1 WHERE Id_Employee = @p2;`
+		_, err = s.DB.ExecContext(ctx, query, updateEmployee.CarId, id)
+		if err != nil {
+			return errors.Wrap(err, "failed to update car details")
+		}
+	} else {
+		query = "INSERT INTO Employee_Car (Id_Employee, Id_Car) VALUES (@p1, @p2);"
+		_, err = s.DB.ExecContext(ctx, query, id, updateEmployee.CarId)
+		if err != nil {
+			return errors.Wrap(err, "failed to insert car details")
+		}
 	}
 
 	return nil
