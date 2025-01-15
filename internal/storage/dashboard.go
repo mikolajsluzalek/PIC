@@ -20,16 +20,16 @@ func (s *Service) DashboardEmployeeProjects(ctx context.Context) ([]models.Dashb
 
 	for rows.Next() {
 		var (
-			count int
 			name  string
+			count int
 		)
 
-		err = rows.Scan(&count, &name)
+		err = rows.Scan(&name, &count)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan row")
 		}
 
-		results = append(results, models.DashboardEmployeesProject{Count: count, Name: name})
+		results = append(results, models.DashboardEmployeesProject{Name: name, Count: count})
 	}
 
 	err = rows.Err()
