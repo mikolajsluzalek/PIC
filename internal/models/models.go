@@ -248,10 +248,10 @@ type UpdateAccommodation struct {
 }
 
 type ContactDetails struct {
-	ID          int    `json:"id"`
-	FirstName   string `json:"first_name"`
-	LastName    string `json:"last_name"`
-	PhoneNumber string `json:"phone_number"`
+	ID          *int    `json:"id"`
+	FirstName   *string `json:"first_name"`
+	LastName    *string `json:"last_name"`
+	PhoneNumber *string `json:"phone_number"`
 }
 
 type UpdateContactDetails struct {
@@ -261,12 +261,12 @@ type UpdateContactDetails struct {
 }
 
 type PaymentDetails struct {
-	ID            int     `json:"id"`
-	Cost          float64 `json:"cost"`
-	Deposit       float64 `json:"deposit"`
-	Contract      string  `json:"contract"`
-	AccountNumber string  `json:"account_number"`
-	PaymentDay    int     `json:"payment_day"`
+	ID            *int     `json:"id"`
+	Cost          *float64 `json:"cost"`
+	Deposit       *float64 `json:"deposit"`
+	Contract      *string  `json:"contract"`
+	AccountNumber *string  `json:"account_number"`
+	PaymentDay    *int     `json:"payment_day"`
 }
 
 type UpdatePaymentDetails struct {
