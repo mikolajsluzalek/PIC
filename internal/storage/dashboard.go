@@ -8,7 +8,7 @@ import (
 )
 
 func (s *Service) DashboardEmployeeProjects(ctx context.Context) ([]models.DashboardEmployeesProject, error) {
-	sql := "SELECT COUNT(*) AS Count, [Name] FROM Employee_Project pp JOIN Project pro ON pro.Id_Project = pp.Id_Project GROUP BY [Name] ORDER BY [Count] DESC"
+	sql := "WITH ProjectCounts AS (SELECT COUNT(*) AS Count, [Name] FROM Employee_Project pp JOIN Project pro ON pro.Id_Project = pp.Id_Project GROUP BY [Name]), RankedProjects AS (SELECT [Name], Count, ROW_NUMBER() OVER (ORDER BY Count DESC) AS RowNum FROM ProjectCounts), TopProjects AS (SELECT [Name], Count FROM RankedProjects WHERE RowNum <= 10 UNION ALL SELECT 'Pozostałe' AS [Name], SUM(Count) AS Count FROM RankedProjects WHERE RowNum > 10) SELECT [Name], Count FROM TopProjects ORDER BY Count DESC;"
 
 	rows, err := s.DB.QueryContext(ctx, sql)
 	if err != nil {
