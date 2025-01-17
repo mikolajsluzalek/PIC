@@ -303,14 +303,12 @@ type Employee struct {
 }
 
 type ResidenceCardDetails struct {
-	ID    int   `json:"id"`
 	Bio   *Date `json:"bio,omitempty"`
 	Visa  *Date `json:"visa,omitempty"`
 	TCard *Date `json:"tcard,omitempty"`
 }
 
 type EmploymentDetails struct {
-	ID             int    `json:"id"`
 	ContractType   string `json:"contract_type"`
 	StartDate      Date   `json:"start_date"`
 	EndDate        *Date  `json:"end_date,omitempty"`
@@ -318,7 +316,6 @@ type EmploymentDetails struct {
 }
 
 type MedicalDetails struct {
-	ID                    int   `json:"id"`
 	OSHValidUntil         Date  `json:"osh_valid_until,omitempty"`
 	PsychotestsValidUntil *Date `json:"psychotests_valid_until,omitempty"`
 	MedicalValidUntil     Date  `json:"medical_valid_until,omitempty"`

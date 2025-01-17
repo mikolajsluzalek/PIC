@@ -47,7 +47,7 @@ func (s *Service) Employees(ctx context.Context) ([]models.Employee, error) {
 }
 
 func (s *Service) GetEmployee(ctx context.Context, id int) (models.Employee, error) {
-	sql := `SELECT TOP 1 e.Id_Employee, e.Last_Name, e.First_Name, e.Passport_Number, e.Pesel, e.Email, e.Date_Of_Birth, e.Father_Name, e.Mother_Name, e.Maiden_Name, e.Mother_Maiden_Name, e.Bank_Account, e.Address_Poland, e.Home_Address, e.Login, e.Password, m.Id_medicals, m.OSH_Valid_Until, m.Psychotests_Valid_Until, m.Medical_Valid_Until, m.Sanitary_Valid_Until, em.Id_Employment, em.Contract_Type, em.Start_Date, em.End_Date, em.Authorizations, rc.Id_card, rc.Bio, rc.Visa, rc.Tcard, ea.Id_Accommodation, ep.Id_Project, ec.Id_Car FROM employee e LEFT JOIN (SELECT TOP 1 Id_medicals, OSH_Valid_Until, Psychotests_Valid_Until, Medical_Valid_Until, Sanitary_Valid_Until, Id_employee FROM Medicals WHERE Id_employee = @p1 ORDER BY Id_medicals DESC) m ON e.Id_Employee = m.Id_employee LEFT JOIN (SELECT TOP 1 Id_Employment, Contract_Type, Start_Date, End_Date, Authorizations, Id_Employee FROM Employment WHERE Id_Employee = @p1 ORDER BY Id_Employment DESC) em ON e.Id_Employee = em.Id_Employee LEFT JOIN (SELECT TOP 1 Id_card, Bio, Visa, Tcard, Employee_Id FROM Residence_Card WHERE Employee_Id = @p1 ORDER BY Id_Card DESC) rc ON e.Id_Employee = rc.Employee_Id LEFT JOIN (SELECT Id_Accommodation, Id_Employee FROM Employee_Accommodation WHERE Id_Employee = @p1) ea ON e.Id_Employee = ea.Id_Employee LEFT JOIN (SELECT Id_Project, Id_Employee FROM Employee_Project WHERE Id_Employee = @p1) ep ON e.Id_Employee = ep.Id_Employee LEFT JOIN (SELECT Id_Car, Id_Employee FROM Employee_Car WHERE Id_Employee = @p1) ec ON e.Id_Employee = ec.Id_Employee WHERE e.Id_Employee = @p1;`
+	sql := `SELECT TOP 1 e.Id_Employee, e.Last_Name, e.First_Name, e.Passport_Number, e.Pesel, e.Email, e.Date_Of_Birth, e.Father_Name, e.Mother_Name, e.Maiden_Name, e.Mother_Maiden_Name, e.Bank_Account, e.Address_Poland, e.Home_Address, e.Login, e.Password, m.OSH_Valid_Until, m.Psychotests_Valid_Until, m.Medical_Valid_Until, m.Sanitary_Valid_Until, em.Contract_Type, em.Start_Date, em.End_Date, em.Authorizations, rc.Bio, rc.Visa, rc.Tcard, ea.Id_Accommodation, ep.Id_Project, ec.Id_Car FROM employee e LEFT JOIN (SELECT OSH_Valid_Until, Psychotests_Valid_Until, Medical_Valid_Until, Sanitary_Valid_Until, Id_employee FROM Medicals WHERE Id_employee = @p1) m ON e.Id_Employee = m.Id_employee LEFT JOIN (SELECT Contract_Type, Start_Date, End_Date, Authorizations, Id_Employee FROM Employment WHERE Id_Employee = @p1) em ON e.Id_Employee = em.Id_Employee LEFT JOIN (SELECT Bio, Visa, Tcard, Employee_Id FROM Residence_Card WHERE Employee_Id = @p1) rc ON e.Id_Employee = rc.Employee_Id LEFT JOIN (SELECT Id_Accommodation, Id_Employee FROM Employee_Accommodation WHERE Id_Employee = @p1) ea ON e.Id_Employee = ea.Id_Employee LEFT JOIN (SELECT Id_Project, Id_Employee FROM Employee_Project WHERE Id_Employee = @p1) ep ON e.Id_Employee = ep.Id_Employee LEFT JOIN (SELECT Id_Car, Id_Employee FROM Employee_Car WHERE Id_Employee = @p1) ec ON e.Id_Employee = ec.Id_Employee WHERE e.Id_Employee = @p1;`
 	var employee models.Employee
 
 	err := s.DB.QueryRowContext(ctx, sql, id).Scan(
@@ -67,17 +67,14 @@ func (s *Service) GetEmployee(ctx context.Context, id int) (models.Employee, err
 		&employee.HomeAddress,
 		&employee.Login,
 		&employee.Password,
-		&employee.Medicals.ID,
 		&employee.Medicals.OSHValidUntil,
 		&employee.Medicals.PsychotestsValidUntil,
 		&employee.Medicals.MedicalValidUntil,
 		&employee.Medicals.SanitaryValidUntil,
-		&employee.Employment.ID,
 		&employee.Employment.ContractType,
 		&employee.Employment.StartDate,
 		&employee.Employment.EndDate,
 		&employee.Employment.Authorizations,
-		&employee.ResidenceCard.ID,
 		&employee.ResidenceCard.Bio,
 		&employee.ResidenceCard.Visa,
 		&employee.ResidenceCard.TCard,

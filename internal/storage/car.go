@@ -86,7 +86,7 @@ func (s *Service) UpdateCar(ctx context.Context, id int, updateCar models.Update
 }
 
 func (s *Service) GetCarNumbers(ctx context.Context) ([]models.CarNumbers, error) {
-	sql := "SELECT c.Id_Car, c.Registration_Number FROM Car c ORDER BY c.Id_Car;"
+	sql := "SELECT c.Id_Car, c.Registration_Number FROM Car c ORDER BY c.Registration_Number;"
 
 	rows, err := s.DB.QueryContext(ctx, sql)
 	if err != nil {

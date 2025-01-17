@@ -90,7 +90,7 @@ func (s *Service) UpdateAccommodation(ctx context.Context, id int, updateAccommo
 }
 
 func (s *Service) GetAccommodationAddresses(ctx context.Context) ([]models.AccommodationAddresses, error) {
-	sql := "SELECT a.Id_Accommodation,CONCAT(a.City,' ',a.Accommodation_Address) AS FullAddress FROM Accommodation a LEFT JOIN (SELECT Id_Accommodation,COUNT(*) AS OccupiedPlaces FROM Employee_Accommodation GROUP BY Id_Accommodation) ea ON a.Id_Accommodation=ea.Id_Accommodation WHERE a.Number_Of_Places>COALESCE(ea.OccupiedPlaces,0) ORDER BY a.Id_Accommodation;"
+	sql := "SELECT a.Id_Accommodation,CONCAT(a.City,' ',a.Accommodation_Address) AS FullAddress FROM Accommodation a LEFT JOIN (SELECT Id_Accommodation,COUNT(*) AS OccupiedPlaces FROM Employee_Accommodation GROUP BY Id_Accommodation) ea ON a.Id_Accommodation=ea.Id_Accommodation WHERE a.Number_Of_Places>COALESCE(ea.OccupiedPlaces,0) ORDER BY FullAddress;"
 
 	rows, err := s.DB.QueryContext(ctx, sql)
 	if err != nil {
