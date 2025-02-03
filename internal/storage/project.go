@@ -74,7 +74,8 @@ func (s *Service) RemoveProject(ctx context.Context, id int) error {
 		"DELETE FROM Employee_Car WHERE Id_Car IN (SELECT Id_Car FROM Car WHERE Id_Project = @p1);" +
 		"DELETE FROM Car WHERE Id_Project = @p1;" +
 		"DELETE FROM Employee_Project WHERE Id_Project = @p1;" +
-		"DELETE FROM Contact_Person WHERE Id_Project = @p1; DELETE FROM Project WHERE Id_Project = @p1;"
+		"DELETE FROM Contact_Person WHERE Id_Project = @p1;" +
+		"DELETE FROM Project WHERE Id_Project = @p1;"
 
 	_, err := s.DB.ExecContext(ctx, sql, id)
 

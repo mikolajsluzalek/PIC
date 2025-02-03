@@ -69,7 +69,7 @@ func (s *Service) AddCar(ctx context.Context, newCar models.NewCar) (id int, err
 }
 
 func (s *Service) RemoveCar(ctx context.Context, id int) error {
-	sql := "DELETE FROM Leasing WHERE Id_Car = @p1; DELETE FROM Service WHERE Id_Car = @p1;DELETE FROM Car WHERE Id_Car = @p1; "
+	sql := "DELETE FROM Leasing WHERE Id_Car = @p1; DELETE FROM Service WHERE Id_Car = @p1; DELETE FROM Employee_Car WHERE Id_Car = @p1; DELETE FROM Car WHERE Id_Car = @p1; "
 
 	_, err := s.DB.ExecContext(ctx, sql, id)
 

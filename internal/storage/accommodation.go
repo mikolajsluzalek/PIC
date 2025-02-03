@@ -65,7 +65,7 @@ func (s *Service) GetAccommodation(ctx context.Context, id int) (models.Accommod
 }
 
 func (s *Service) RemoveAccommodation(ctx context.Context, id int) error {
-	sql := "DELETE FROM Contact WHERE Id_Accommodation = @p1; DELETE FROM Payments WHERE Id_Accommodation = @p1; DELETE FROM Accommodation WHERE Id_Accommodation = @p1; "
+	sql := "DELETE FROM Contact WHERE Id_Accommodation = @p1; DELETE FROM Payments WHERE Id_Accommodation = @p1; DELETE FROM Employee_Accommodation WHERE Id_Accommodation = @p1; DELETE FROM Accommodation WHERE Id_Accommodation = @p1; "
 
 	_, err := s.DB.ExecContext(ctx, sql, id)
 
