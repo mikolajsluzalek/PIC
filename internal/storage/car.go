@@ -37,11 +37,11 @@ func (s *Service) Cars(ctx context.Context) ([]models.Car, error) {
 }
 
 func (s *Service) GetCar(ctx context.Context, id int) (models.Car, error) {
-	sql := "SELECT C.Id_Car,C.Model,C.Color,C.Registration_Number,C.VIN_Number,C.Inspection_From,C.Inspection_To,C.Insurance_From,C.Insurance_To,C.Fleet_Card_Number,C.Id_Project,P.Name,S.Id_Service,S.Service_Name,S.Address,S.Phone_Number,L.Amount,L.Monthly_Payment,L.Payment_Day FROM Car C LEFT JOIN Project P ON C.Id_Project=P.Id_Project LEFT JOIN Service S ON C.Id_Car=S.Id_Car LEFT JOIN Leasing L ON C.Id_Car=L.Id_Car WHERE C.Id_Car = @p1;"
+	sql := "SELECT C.Id_Car,C.Model,C.Color,C.Registration_Number,C.VIN_Number,C.Inspection_From,C.Inspection_To,C.Insurance_From,C.Insurance_To,C.Fleet_Card_Number,C.Id_Project,P.Name,S.Service_Name,S.Address,S.Phone_Number,L.Amount,L.Monthly_Payment,L.Payment_Day FROM Car C LEFT JOIN Project P ON C.Id_Project=P.Id_Project LEFT JOIN Service S ON C.Id_Car=S.Id_Car LEFT JOIN Leasing L ON C.Id_Car=L.Id_Car WHERE C.Id_Car = @p1;"
 
 	var car models.Car
 
-	err := s.DB.QueryRowContext(ctx, sql, id).Scan(&car.ID, &car.Model, &car.Color, &car.RegistrationNumber, &car.VIN, &car.InspectionFrom, &car.InspectionTo, &car.InsuranceFrom, &car.InsuranceTo, &car.FleetCardNumber, &car.ProjectID, &car.ProjectName, &car.Service.ID, &car.Service.ServiceName, &car.Service.Address, &car.Service.PhoneNumber, &car.Leasing.Amount, &car.Leasing.MonthlyPayment, &car.Leasing.PaymentDay)
+	err := s.DB.QueryRowContext(ctx, sql, id).Scan(&car.ID, &car.Model, &car.Color, &car.RegistrationNumber, &car.VIN, &car.InspectionFrom, &car.InspectionTo, &car.InsuranceFrom, &car.InsuranceTo, &car.FleetCardNumber, &car.ProjectID, &car.ProjectName, &car.Service.ServiceName, &car.Service.Address, &car.Service.PhoneNumber, &car.Leasing.Amount, &car.Leasing.MonthlyPayment, &car.Leasing.PaymentDay)
 
 	return car, errors.Wrap(err, "failed to retrieve car")
 }

@@ -147,7 +147,6 @@ type NewCar struct {
 	Leasing            Leasing `json:"leasing"`
 }
 type Service struct {
-	ID          int    `json:"id_service"`
 	ServiceName string `json:"serviceName"`
 	Address     string `json:"address"`
 	PhoneNumber string `json:"phoneNumber"`
